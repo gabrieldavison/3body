@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"lofl/connections"
 	"lofl/forth"
 	"lofl/world"
 	"log"
@@ -39,10 +40,6 @@ type MemoryObject struct {
 	IsCurrent   bool   `json:"isCurrent,omitempty"` // Whether this nod is the current node for any head
 }
 
-type Message struct {
-	Command string `json:"command"`
-}
-
 var (
 	globalStack  forth.Stack
 	globalState  forth.State
@@ -53,8 +50,6 @@ var allowedOrigins = map[string]bool{
 	"http://localhost:5173": true,
 	"http://localhost:5174": true,
 }
-
-var messageChan chan string
 
 func initializeForth() {
 	// Initialize the world
@@ -69,7 +64,7 @@ func initializeForth() {
 	client := osc.NewClient("localhost", 7001)
 
 	// Add world dictionary words to forth state
-	worldWords := world.DefineWorldDictionary(globalMemory, clock, client, messageChan)
+	worldWords := world.DefineWorldDictionary(globalMemory, clock, client)
 	for name, word := range worldWords {
 		globalState.Dictionary[name] = word
 	}
@@ -214,14 +209,9 @@ func streamMessages(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	// Initialize message channel if needed
-	if messageChan == nil {
-		messageChan = make(chan string)
+	if connections.HTTPMessageChannel == nil {
+		connections.HTTPMessageChannel = make(chan connections.HTTPMessage)
 	}
-
-	// Send an initial message to test connection
-	fmt.Fprintf(w, "data: {\"command\": \"connected\"}\n\n")
-	w.(http.Flusher).Flush()
-	log.Println("Sent initial message")
 
 	// Watch for client disconnection
 	done := r.Context().Done()
@@ -231,9 +221,8 @@ func streamMessages(w http.ResponseWriter, r *http.Request) {
 		case <-done:
 			log.Println("Client disconnected")
 			return
-		case msg := <-messageChan:
-			log.Printf("Sending message: %s", msg)
-			data, _ := json.Marshal(Message{Command: msg})
+		case msg := <-connections.HTTPMessageChannel:
+			data, _ := json.Marshal(connections.HTTPMessage{Type: msg.Type, Content: msg.Content})
 			fmt.Fprintf(w, "data: %s\n\n", data)
 			if f, ok := w.(http.Flusher); ok {
 				f.Flush()

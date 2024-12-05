@@ -7,11 +7,13 @@ import (
 
 	"lofl/forth"
 
+	"lofl/connections"
+
 	"github.com/hypebeast/go-osc/osc"
 )
 
 // DefineWorldDictionary creates forth words that interact with the world
-func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client, messageChan chan string) map[string]forth.DictionaryWord {
+func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) map[string]forth.DictionaryWord {
 	return map[string]forth.DictionaryWord{
 		// random ( -- n ) places a random number on stack
 		"random": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
@@ -658,20 +660,36 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client, m
 			stack = append(stack, float64(x))
 			return stack, state, nil
 		},
-		"mg": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
+		"mlg": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
 			if len(stack) < 1 {
 				return stack, state, []string{"Error: stack underflow"}
 			}
 
 			msg, newStack, err := popString(stack)
 
-			fmt.Print(msg)
 			if err != nil {
 				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
 			}
 
-			if messageChan != nil {
-				messageChan <- msg
+			if connections.HTTPMessageChannel != nil {
+				connections.HTTPMessageChannel <- connections.HTTPMessage{Type: "line", Content: msg}
+			}
+
+			return newStack, state, nil
+		},
+		"mhg": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
+			if len(stack) < 1 {
+				return stack, state, []string{"Error: stack underflow"}
+			}
+
+			msg, newStack, err := popString(stack)
+
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+
+			if connections.HTTPMessageChannel != nil {
+				connections.HTTPMessageChannel <- connections.HTTPMessage{Type: "hydra", Content: msg}
 			}
 
 			return newStack, state, nil
