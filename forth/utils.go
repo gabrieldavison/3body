@@ -4,9 +4,8 @@ import "fmt"
 
 func GetArray(stack Stack) ([]interface{}, Stack, error) {
 	var arr []interface{}
-	elementStack := stack[1:]
 
-	newStack := make(Stack, len(elementStack))
+	newStack := make(Stack, len(stack))
 	copy(newStack, stack)
 
 	for len(newStack) > 0 {

@@ -43,7 +43,7 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 		},
 
 		// m ( message address -- ) sends a message
-		"m": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
+		"m-osc": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
 			if len(stack) < 2 {
 				return stack, state, []string{"Error: stack underflow"}
 			}
@@ -173,7 +173,7 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			stack = newStack
 
 			stack = forth.Push(stack, arr)
-			stack = forth.Push(stack, fmt.Sprintf("%s m", address)) // push the wrapper
+			stack = forth.Push(stack, fmt.Sprintf("%s m-osc", address)) // push the wrapper
 			stack = forth.Push(stack, y)
 			stack = forth.Push(stack, x+1)
 
@@ -611,7 +611,9 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			stack = append(stack, float64(x))
 			return stack, state, nil
 		},
-		"mlg": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
+
+		// Message hydra graphics
+		"m-lg": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
 			if len(stack) < 1 {
 				return stack, state, []string{"Error: stack underflow"}
 			}
@@ -628,7 +630,9 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 
 			return newStack, state, nil
 		},
-		"mhg": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
+
+		// Message line graphics
+		"m-hg": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
 			if len(stack) < 1 {
 				return stack, state, []string{"Error: stack underflow"}
 			}
