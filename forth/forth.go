@@ -2,6 +2,7 @@ package forth
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -92,7 +93,40 @@ func createInitialDictionary() Dictionary {
 		},
 		"]": func(stack Stack, state State) (Stack, State, []string) {
 
-			return Push(stack, "]"), state, nil
+			arr, newStack, err := GetArray(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error creating array: %v", err)}
+			}
+
+			return Push(newStack, arr), state, nil
+		},
+		"print-array": func(stack Stack, state State) (Stack, State, []string) {
+			if len(stack) < 1 {
+				return stack, state, []string{"stack underflow"}
+			}
+
+			s, item, _ := Pop(stack)
+
+			// Try to convert item to array
+			arr, ok := item.([]interface{})
+			if !ok {
+				return stack, state, []string{"top item is not an array"}
+			}
+
+			// Build string representation of array
+			var elements []string
+			for _, val := range arr {
+				switch v := val.(type) {
+				case float64:
+					elements = append(elements, fmt.Sprintf("%g", v))
+				case string:
+					elements = append(elements, fmt.Sprintf("\"%s\"", v))
+				default:
+					elements = append(elements, fmt.Sprintf("%v", v))
+				}
+			}
+
+			return s, state, []string{fmt.Sprintf("[ %s ]", strings.Join(elements, " "))}
 		},
 	}
 }
