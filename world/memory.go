@@ -151,3 +151,20 @@ func (m *Memory2D) GetGrid() [][]*Nod {
 	}
 	return grid
 }
+
+func (m *Memory2D) ClearMemory() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// Get current dimensions
+	rows, cols := len(m.mem), len(m.mem[0])
+
+	// Recreate empty grid with same dimensions
+	m.mem = make([][]*Nod, rows)
+	for i := range m.mem {
+		m.mem[i] = make([]*Nod, cols)
+	}
+
+	// Clear heads slice
+	m.heds = make([]*Hed, 0)
+}

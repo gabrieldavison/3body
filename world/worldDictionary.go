@@ -645,6 +645,12 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 
 			return newStack, state, nil
 		},
+
+		"clear-memory": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
+			memory.ClearMemory()
+
+			return stack, state, []string{}
+		},
 	}
 
 }
