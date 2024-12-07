@@ -96,6 +96,7 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			// Reverses the array and then wraps the strings
 			nodes := make([]*Nod, len(arr))
 			for i, val := range arr {
+
 				var wrappedMessage string
 				switch v := val.(type) {
 				case string:
@@ -106,6 +107,11 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 					wrappedMessage = fmt.Sprintf("%d %s", v, wrapper)
 				default:
 					wrappedMessage = fmt.Sprintf("%v %s", v, wrapper)
+				}
+
+				// Special case, dont wrap
+				if val == "_" {
+					wrappedMessage = "_"
 				}
 
 				nod, err := NewNod(NodID(x+i, y), Message(wrappedMessage))
@@ -173,7 +179,77 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			stack = newStack
 
 			stack = forth.Push(stack, arr)
-			stack = forth.Push(stack, fmt.Sprintf("%s m-osc", address)) // push the wrapper
+			stack = forth.Push(stack, fmt.Sprintf(`"%s" m-osc`, address)) // push the wrapper
+			stack = forth.Push(stack, y)
+			stack = forth.Push(stack, x+1)
+
+			stack, state, message := forth.Interpret(fmt.Sprintf("seq %d %d %f hed", y, x, every), stack, state)
+
+			return stack, state, message
+		},
+
+		"qs-lg": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
+			x, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			y, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			every, newStack, err := forth.PopFloat(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			arr, newStack, err := forth.PopArray(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error getting array: %v", err)}
+			}
+			stack = newStack
+
+			stack = forth.Push(stack, arr)
+			stack = forth.Push(stack, "m-lg") // push the wrapper
+			stack = forth.Push(stack, y)
+			stack = forth.Push(stack, x+1)
+
+			stack, state, message := forth.Interpret(fmt.Sprintf("seq %d %d %f hed", y, x, every), stack, state)
+
+			return stack, state, message
+		},
+
+		"qs-hg": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
+			x, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			y, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			every, newStack, err := forth.PopFloat(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			arr, newStack, err := forth.PopArray(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error getting array: %v", err)}
+			}
+			stack = newStack
+
+			stack = forth.Push(stack, arr)
+			stack = forth.Push(stack, "m-hg") // push the wrapper
 			stack = forth.Push(stack, y)
 			stack = forth.Push(stack, x+1)
 
