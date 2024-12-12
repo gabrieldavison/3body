@@ -1,0 +1,74 @@
+:root {
+  --color-background: #e2e0cb;
+  --color-yellow: #eba51d;
+  --color-orange: #cf6347; /* Fixed typo in 'orange' */
+  --color-blue: #073c79;
+  --color-black: #090a02;
+  --color-red: #e03c17;
+}
+
+html {
+  box-sizing: border-box;
+  background-color: var(--color-background);
+  color: var(--color-black);
+}
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.editor-section,
+.memory-section {
+  width: 100%;
+  height: 50%;
+}
+
+.memory-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.editor-section {
+  display: inline-flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+#forth-output {
+  height: 100px;
+  overflow: scroll;
+  font-family: monospace;
+  border: 1px solid var(--color-blue);
+  color: var(--color-blue);
+  margin-bottom: 0.5rem;
+  scrollbar-width: none; /* Firefox */
+  padding: 0.5rem;
+}
+
+#forth-output::-webkit-scrollbar {
+  display: none;
+}
+
+#forth-input {
+  font-family: monospace;
+  height: 100%;
+  border: 1px solid var(--color-red);
+  background-color: var(--color-background);
+  color: var(--color-black);
+  padding: 0.5rem;
+}
