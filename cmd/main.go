@@ -1,11 +1,11 @@
 package main
 
 import (
+	"3body/connections"
+	"3body/forth"
+	"3body/world"
 	"encoding/json"
 	"fmt"
-	"lofl/connections"
-	"lofl/forth"
-	"lofl/world"
 	"log"
 	"net/http"
 	"time"

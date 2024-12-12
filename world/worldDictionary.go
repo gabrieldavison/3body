@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"math/rand"
 
-	"lofl/forth"
+	"3body/forth"
 
-	"lofl/connections"
+	"3body/connections"
 
 	"github.com/hypebeast/go-osc/osc"
 )
@@ -653,7 +653,7 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			return stack, state, nil
 		},
 
-		"r-f": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
+		"hed-freq": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
 			if len(stack) < 3 {
 				return stack, state, []string{"Error: stack underflow"}
 			}

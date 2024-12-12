@@ -2,9 +2,11 @@
 
 ## Concrete
 
-- Add a qsm for graphics
-- Add a command to clear the memory so you dont have to restart every time
 - patterns with one note dont work 
+- doesnt work in a nice way
+- come up with a way to change the output of a sequence
+- pull the client into this repo so that its easier to start
+
 
 
 ## Abstract
@@ -16,3 +18,4 @@
 - Can you use the stack and word chaning to do more interesting things
 - Can you use live word definition to do more interesting things
 - think about how the stack based paradigm could transfer in a better way to graphics programming
+- create an abstraction over message sending so the message output doesnt care if it is sending SSE's or OSC

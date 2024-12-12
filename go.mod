@@ -1,4 +1,4 @@
-module lofl
+module 3body
 
 go 1.23.3
 

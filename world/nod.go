@@ -2,8 +2,8 @@
 package world
 
 import (
+	"3body/forth"
 	"fmt"
-	"lofl/forth"
 	"strings"
 )
 
