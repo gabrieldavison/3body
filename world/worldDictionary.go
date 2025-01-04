@@ -436,9 +436,11 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			hed, err := NewHed(
 				HedID(int(destX), int(destY)),
 				nod,
+				nil,
 				int(every),
 				state,
 			)
+
 			if err != nil {
 				return stack, state, []string{fmt.Sprintf("Error creating hed: %v", err)}
 			}
@@ -454,6 +456,84 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			stack = append(stack, float64(destY))
 			stack = append(stack, float64(destX))
 			return stack, state, nil
+		},
+
+		"hed-loop": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
+			if len(stack) < 7 {
+				return stack, state, []string{"Error: stack underflow"}
+			}
+
+			every, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			lastX, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			lastY, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			firstX, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			firstY, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			hedX, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			hedY, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			firstNod, err := memory.GetNod(firstX, firstY)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error getting nod: %v", err)}
+			}
+
+			lastNod, err := memory.GetNod(lastX, lastY)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error getting nod: %v", err)}
+			}
+
+			hed, err := NewHed(
+				HedID(hedX, hedY),
+				firstNod,
+				lastNod,
+				every,
+				state,
+			)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error creating hed: %v", err)}
+			}
+
+			if err := memory.AddHed(hedX, hedY, hed); err != nil {
+				return stack, state, []string{fmt.Sprintf("Error adding head: %v", err)}
+			}
+
+			stack = append(stack, hedY)
+			stack = append(stack, hedX)
+			return stack, state, nil
+
 		},
 
 		"nod": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {

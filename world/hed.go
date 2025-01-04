@@ -11,16 +11,17 @@ type Hed struct {
 	id         string
 	first      *Nod // Points to first node in sequence
 	current    *Nod // Current node in sequence
+	last       *Nod // The last nod in a sequence, used for windowed nods, this is optional
 	every      int  // How often to trigger
 	bangs      int  // Count of bangs received
 	stopped    bool // Whether head is stopped
 	stack      forth.Stack
 	forthState forth.State
-	modifier   string
+	modifier   string // appended to the end of a message before execution
 }
 
 // NewHed creates a new Hed
-func NewHed(id string, first *Nod, every int, state forth.State) (*Hed, error) {
+func NewHed(id string, first *Nod, last *Nod, every int, state forth.State) (*Hed, error) {
 	if id == "" {
 		return nil, fmt.Errorf("hed id cannot be empty")
 	}
@@ -61,6 +62,8 @@ func (h *Hed) Bang() error {
 		// Move to next node or wrap around to first
 		if h.current.Next() != nil {
 			h.current = h.current.Next()
+		} else if h.current == h.last {
+			h.current = h.first
 		} else {
 			h.current = h.first
 		}
