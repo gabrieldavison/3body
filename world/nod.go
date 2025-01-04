@@ -55,11 +55,16 @@ func (n *Nod) SetMessage(message string) {
 func (n *Nod) Bang(stack forth.Stack, state forth.State, modifier string) (forth.Stack, forth.State, []string, error) {
 	msg := string(n.message)
 
-	if modifier != "" {
-		msg = fmt.Sprintf("`%s` %s", n.message, modifier)
+	// Feels a bit hacky having this here but I dont know if theres a better way to solve this now that I am appending adddresses
+	if msg == "_" {
+		return stack, state, []string{}, nil
 	}
 
-	// This allow for nodTime substitutions
+	if modifier != "" {
+		msg = fmt.Sprintf("%s %s", n.message, modifier)
+	}
+
+	// This allows for nodTime substitutions
 	msgWithSigils, err := forth.ParseSigils(msg)
 
 	if err != nil {

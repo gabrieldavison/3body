@@ -21,7 +21,7 @@ type Hed struct {
 }
 
 // NewHed creates a new Hed
-func NewHed(id string, first *Nod, last *Nod, every int, state forth.State) (*Hed, error) {
+func NewHed(id string, first *Nod, last *Nod, every int, modifier string, state forth.State) (*Hed, error) {
 	if id == "" {
 		return nil, fmt.Errorf("hed id cannot be empty")
 	}
@@ -31,6 +31,7 @@ func NewHed(id string, first *Nod, last *Nod, every int, state forth.State) (*He
 		first:      first,
 		current:    first,
 		every:      every,
+		modifier:   modifier,
 		bangs:      0,
 		stopped:    true,
 		stack:      forth.CreateStack(),

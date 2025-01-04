@@ -67,7 +67,6 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			return stack, state, nil
 		},
 
-		// array wrapper y x seq -> sequence of nods / y x of first nod
 		"seq": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
 			x, newStack, err := forth.PopInt(stack)
 			if err != nil {
@@ -81,40 +80,34 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			}
 			stack = newStack
 
-			wrapper, newStack, err := forth.PopString(stack)
-			if err != nil {
-				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
-			}
-			stack = newStack
-
 			arr, newStack, err := forth.PopArray(stack)
 			if err != nil {
 				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
 			}
 			stack = newStack
 
-			// Reverses the array and then wraps the strings
+			// Reverses the array and then converts array vaule to a string
 			nodes := make([]*Nod, len(arr))
 			for i, val := range arr {
 
-				var wrappedMessage string
+				var message string
 				switch v := val.(type) {
 				case string:
-					wrappedMessage = fmt.Sprintf("%s %s", v, wrapper)
+					message = v
 				case float64:
-					wrappedMessage = fmt.Sprintf("%g %s", v, wrapper)
+					message = fmt.Sprintf("%g", v)
 				case int:
-					wrappedMessage = fmt.Sprintf("%d %s", v, wrapper)
+					message = fmt.Sprintf("%d", v)
 				default:
-					wrappedMessage = fmt.Sprintf("%v %s", v, wrapper)
+					message = fmt.Sprintf("%v", v)
 				}
 
 				// Special case, dont wrap
 				if val == "_" {
-					wrappedMessage = "_"
+					message = "_"
 				}
 
-				nod, err := NewNod(NodID(x+i, y), Message(wrappedMessage))
+				nod, err := NewNod(NodID(x+i, y), Message(message))
 				if err != nil {
 					return stack, state, []string{fmt.Sprintf("error creating node: %v", err)}
 				}
@@ -179,11 +172,12 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			stack = newStack
 
 			stack = forth.Push(stack, arr)
-			stack = forth.Push(stack, fmt.Sprintf(`"%s" m-osc`, address)) // push the wrapper
 			stack = forth.Push(stack, y)
 			stack = forth.Push(stack, x+1)
 
-			stack, state, message := forth.Interpret(fmt.Sprintf("seq %d %d %f hed", y, x, every), stack, state)
+			formattedAddress := fmt.Sprintf(`"%s" m-osc`, address)
+
+			stack, state, message := forth.Interpret(fmt.Sprintf("seq %d %d `%s` %f hed-wrapped", y, x, formattedAddress, every), stack, state)
 
 			return stack, state, message
 		},
@@ -214,11 +208,10 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			stack = newStack
 
 			stack = forth.Push(stack, arr)
-			stack = forth.Push(stack, "m-lg") // push the wrapper
 			stack = forth.Push(stack, y)
 			stack = forth.Push(stack, x+1)
 
-			stack, state, message := forth.Interpret(fmt.Sprintf("seq %d %d %f hed", y, x, every), stack, state)
+			stack, state, message := forth.Interpret(fmt.Sprintf("seq %d %d `m-lg` %f hed-wrapped", y, x, every), stack, state)
 
 			return stack, state, message
 		},
@@ -249,11 +242,10 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			stack = newStack
 
 			stack = forth.Push(stack, arr)
-			stack = forth.Push(stack, "m-hg") // push the wrapper
 			stack = forth.Push(stack, y)
 			stack = forth.Push(stack, x+1)
 
-			stack, state, message := forth.Interpret(fmt.Sprintf("seq %d %d %f hed", y, x, every), stack, state)
+			stack, state, message := forth.Interpret(fmt.Sprintf("seq %d %d `m-hg` %f hed", y, x, every), stack, state)
 
 			return stack, state, message
 		},
@@ -284,7 +276,6 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			stack = newStack
 
 			stack = forth.Push(stack, arr)
-			stack = forth.Push(stack, "") // push the wrapper
 			stack = forth.Push(stack, y)
 			stack = forth.Push(stack, x+1)
 
@@ -438,6 +429,79 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 				nod,
 				nil,
 				int(every),
+				"",
+				state,
+			)
+
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error creating hed: %v", err)}
+			}
+
+			if err := memory.AddHed(int(destX), int(destY), hed); err != nil {
+				return stack, state, []string{fmt.Sprintf("Error adding head: %v", err)}
+			}
+
+			if err := memory.AddHed(int(destX), int(destY), hed); err != nil {
+				return stack, state, []string{fmt.Sprintf("Error adding head: %v", err)}
+			}
+
+			stack = append(stack, float64(destY))
+			stack = append(stack, float64(destX))
+			return stack, state, nil
+		},
+
+		"hed-wrapped": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
+			if len(stack) < 6 {
+				return stack, state, []string{"Error: stack underflow"}
+			}
+
+			every, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			wrapper, newStack, err := forth.PopString(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			destX, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			destY, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			nodX, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			nodY, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			nod, err := memory.GetNod(int(nodX), int(nodY))
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error getting nod: %v", err)}
+			}
+
+			hed, err := NewHed(
+				HedID(int(destX), int(destY)),
+				nod,
+				nil,
+				int(every),
+				wrapper,
 				state,
 			)
 
@@ -459,11 +523,17 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 		},
 
 		"hed-loop": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
-			if len(stack) < 7 {
+			if len(stack) < 8 {
 				return stack, state, []string{"Error: stack underflow"}
 			}
 
 			every, newStack, err := forth.PopInt(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			address, newStack, err := forth.PopString(stack)
 			if err != nil {
 				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
 			}
@@ -515,11 +585,14 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 				return stack, state, []string{fmt.Sprintf("Error getting nod: %v", err)}
 			}
 
+			formattedAddress := fmt.Sprintf(`"%s" m-osc`, address)
+
 			hed, err := NewHed(
 				HedID(hedX, hedY),
 				firstNod,
 				lastNod,
 				every,
+				formattedAddress,
 				state,
 			)
 			if err != nil {
