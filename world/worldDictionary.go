@@ -250,6 +250,37 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			return stack, state, message
 		},
 
+		// [ array of js commands ] stitch
+		// sitiches function calls with a '.' in between and sends them as
+		"stitch": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
+			arr, newStack, err := forth.PopArray(stack)
+			if err != nil {
+				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
+			}
+			stack = newStack
+
+			var commandString = ""
+			for i, val := range arr {
+				switch v := val.(type) {
+				case string:
+					if i == 0 {
+						commandString = commandString + v
+					} else {
+						commandString = commandString + "." + v
+					}
+				}
+			}
+
+			stack = forth.Push(stack, commandString)
+
+			return stack, state, nil
+		},
+
+		"hydra": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
+			stack, state, message := forth.Interpret("stitch m-hg", stack, state)
+			return stack, state, message
+		},
+
 		"qs": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
 			x, newStack, err := forth.PopInt(stack)
 			if err != nil {
