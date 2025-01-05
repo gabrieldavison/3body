@@ -138,6 +138,28 @@ func splitPreservingStrings(input string) []string {
 	inBacktick := false
 	inQuote := false
 
+	// First, normalize all whitespace characters to spaces except when in quotes
+	normalized := make([]rune, 0, len(input))
+	tempInQuote := false
+	tempInBacktick := false
+
+	for _, char := range input {
+		switch {
+		case char == '`':
+			tempInBacktick = !tempInBacktick
+			normalized = append(normalized, char)
+		case char == '"':
+			tempInQuote = !tempInQuote
+			normalized = append(normalized, char)
+		case (char == '\n' || char == '\r' || char == '\t') && !tempInQuote && !tempInBacktick:
+			normalized = append(normalized, ' ')
+		default:
+			normalized = append(normalized, char)
+		}
+	}
+
+	input = string(normalized)
+
 	for _, char := range input {
 		switch {
 		case char == '`' && !inQuote:
