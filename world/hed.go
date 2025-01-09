@@ -61,11 +61,14 @@ func (h *Hed) Bang() error {
 		h.forthState = newState
 
 		// Move to next node or wrap around to first
-		if h.current.Next() != nil {
-			h.current = h.current.Next()
-		} else if h.current == h.last {
+		if h.last != nil && h.current.id == h.last.id {
+			// If we have a last node and we're at it, wrap to first
 			h.current = h.first
+		} else if h.current.Next() != nil {
+			// If we have a next node, move to it
+			h.current = h.current.Next()
 		} else {
+			// If no next node or last specified, wrap to first
 			h.current = h.first
 		}
 	}

@@ -63,9 +63,16 @@ func initializeForth() {
 
 	client := osc.NewClient("localhost", 7001)
 
-	// Add world dictionary words to forth state
-	worldWords := world.DefineWorldDictionary(globalMemory, clock, client)
-	for name, word := range worldWords {
+	// Import Dictionaries
+	hedDict := world.DefineHedDictionary(globalMemory)
+	worldDict := world.DefineWorldDictionary(globalMemory, clock, client)
+
+	// Merge dictionaries
+	for k, v := range hedDict {
+		worldDict[k] = v
+	}
+
+	for name, word := range worldDict {
 		globalState.Dictionary[name] = word
 	}
 	clock.Start(globalMemory)
