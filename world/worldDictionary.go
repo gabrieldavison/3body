@@ -58,6 +58,7 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			if err != nil {
 				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
 			}
+
 			stack = newStack
 
 			oscMsg := osc.NewMessage(fmt.Sprintf("/%s", address))
@@ -67,7 +68,13 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			return stack, state, nil
 		},
 
+		// Builds a linked sequence of nods from an array
+		// (arr y x -- y x)
 		"seq": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
+			if len(stack) < 2 {
+				return stack, state, []string{"Error: stack underflow"}
+			}
+
 			x, newStack, err := forth.PopInt(stack)
 			if err != nil {
 				return stack, state, []string{fmt.Sprintf("Error: %v", err)}
@@ -140,6 +147,7 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 
 		},
 
+		//array address every y x -- y x
 		"qs-m": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
 			x, newStack, err := forth.PopInt(stack)
 			if err != nil {
@@ -282,6 +290,7 @@ func DefineWorldDictionary(memory *Memory2D, clock *Clock, client *osc.Client) m
 			return stack, state, message
 		},
 
+		// [ array of commands ] freq y x
 		"qs": func(stack forth.Stack, state forth.State) (forth.Stack, forth.State, []string) {
 			x, newStack, err := forth.PopInt(stack)
 			if err != nil {

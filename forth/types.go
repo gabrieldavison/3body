@@ -16,6 +16,12 @@ type Dictionary map[string]DictionaryWord
 type State struct {
 	Dictionary        Dictionary
 	Compiling         bool
+	CollectingBlock   bool // Add this new field
 	CurrentDefinition []string
 	CurrentWord       *string
+	Globals           map[string]StackItem // Add this new field
+}
+
+type QuotedBlock struct {
+	tokens []string
 }
