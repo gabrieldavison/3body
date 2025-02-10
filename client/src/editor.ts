@@ -17,6 +17,22 @@ export function setupEditor(
 
   textarea.spellcheck = false;
 
+  // Set initial focus
+  textarea.focus();
+
+  // Keep focus on the textarea
+  document.addEventListener("mousedown", (e: MouseEvent) => {
+    if (e.target !== textarea) {
+      e.preventDefault();
+      textarea.focus();
+    }
+  });
+
+  // Keep focus when tab switching back to the window
+  window.addEventListener("focus", () => {
+    textarea.focus();
+  });
+
   // Save content on change with debounce
   let saveTimeout: number | null = null;
   const saveContent = () => {
